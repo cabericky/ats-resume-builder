@@ -320,3 +320,64 @@ textarea {
 .hidden {
   display: none !important;
 }
+
+/* --- MOBILE PREVIEW TOGGLE --- */
+.btn-preview-mobile,
+.btn-back-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .editor {
+    width: 100%;
+    height: 100vh;
+  }
+
+  .preview-container {
+    width: 100%;
+    height: 100vh;
+    display: none;
+    padding: 20px;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  .btn-preview-mobile {
+    display: inline-flex;
+    background: #475569;
+    color: white;
+    width: 100%;
+    font-size: 1.05rem;
+    padding: 16px;
+    margin-top: 10px;
+  }
+
+  .btn-preview-mobile:hover {
+    background: #334155;
+  }
+
+  .btn-back-mobile {
+    display: inline-flex;
+    background: var(--text-dark);
+    color: white;
+    margin-bottom: 20px;
+    width: 100%;
+    padding: 12px;
+  }
+
+  body.mobile-preview-active .editor {
+    display: none;
+  }
+
+  body.mobile-preview-active .preview-container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #resume-preview {
+    width: 100%;
+    padding: 10mm;
+    min-height: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+}

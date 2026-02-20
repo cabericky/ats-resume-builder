@@ -135,12 +135,20 @@
         </button>
       </div>
 
+      <button class="btn btn-preview-mobile" onclick="toggleMobilePreview()">
+        Preview Resume
+      </button>
+
       <button class="btn btn-download" onclick="downloadPDF()">
         Download PDF
       </button>
     </div>
 
     <div class="preview-container">
+      <button class="btn btn-back-mobile" onclick="toggleMobilePreview()">
+        &larr; Back to Edit
+      </button>
+
       <div id="resume-preview">
         <div class="ats-name" id="p-name">YOUR NAME</div>
         <div class="ats-contact" id="p-contact">

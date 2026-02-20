@@ -187,6 +187,11 @@ window.onload = function () {
   updateResume();
 };
 
+// --- MOBILE PREVIEW TOGGLE ---
+function toggleMobilePreview() {
+  document.body.classList.toggle("mobile-preview-active");
+}
+
 // --- PDF DOWNLOAD ---
 function downloadPDF() {
   const element = document.getElementById("resume-preview");
