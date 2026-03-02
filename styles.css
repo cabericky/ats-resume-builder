@@ -327,6 +327,10 @@ textarea {
   display: none;
 }
 
+.preview-container .btn-download {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .editor {
     width: 100%;
@@ -361,8 +365,17 @@ textarea {
     background: var(--text-dark);
     color: white;
     margin-bottom: 20px;
-    width: 100%;
+    width: 48%;
     padding: 12px;
+  }
+
+  .preview-container .btn-download {
+    display: inline-flex;
+    margin-bottom: 20px;
+    margin-top: 0;
+    width: 48%;
+    padding: 12px;
+    font-size: 0.95rem;
   }
 
   body.mobile-preview-active .editor {
@@ -371,7 +384,9 @@ textarea {
 
   body.mobile-preview-active .preview-container {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
   }
 
   #resume-preview {
