@@ -2,6 +2,7 @@
 function toggleSection(sectionId) {
   const section = document.getElementById(sectionId);
   section.classList.toggle("hidden");
+  schedulePreviewScaleUpdate();
 }
 
 // --- DYNAMIC INPUTS ---
@@ -23,6 +24,124 @@ function createInputGroup(labelTxt, className, type = "text") {
 
   return wrapper;
 }
+
+function escapeHTML(value) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function formatPreviewText(value) {
+  return escapeHTML(value).replace(/\n/g, "<br>");
+}
+
+function formatResumeFilename(name) {
+  const formattedName = name
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join("_");
+
+  return `${formattedName || "ATS"}_Resume.pdf`;
+}
+
+let previewScaleRaf = 0;
+
+function schedulePreviewScaleUpdate() {
+  if (previewScaleRaf) return;
+  previewScaleRaf = window.requestAnimationFrame(() => {
+    previewScaleRaf = 0;
+    updatePreviewScale();
+  });
+}
+
+function updatePreviewScale() {
+  const rootStyle = document.documentElement.style;
+  const previewContainer = document.querySelector(".preview-container");
+  const resumePreview = document.getElementById("resume-preview");
+
+  if (!previewContainer || !resumePreview) return;
+
+  if (document.body.classList.contains("pdf-export")) {
+    rootStyle.setProperty("--preview-scale", "1");
+    rootStyle.setProperty("--preview-frame-width", "210mm");
+    rootStyle.setProperty("--preview-frame-height", "297mm");
+    return;
+  }
+
+  const a4Width = 793.7;
+  const a4Height = 1122.5;
+
+  const isSmallScreen = window.matchMedia("(max-width: 768px)").matches;
+  const isPreviewOpen = document.body.classList.contains(
+    "mobile-preview-active",
+  );
+
+  if (isSmallScreen && !isPreviewOpen) {
+    rootStyle.setProperty("--preview-scale", "1");
+    rootStyle.setProperty("--preview-frame-width", `${a4Width}px`);
+    rootStyle.setProperty("--preview-frame-height", `${a4Height}px`);
+    return;
+  }
+
+  const containerStyles = window.getComputedStyle(previewContainer);
+  const paddingX =
+    parseFloat(containerStyles.paddingLeft) +
+    parseFloat(containerStyles.paddingRight);
+  const paddingY =
+    parseFloat(containerStyles.paddingTop) +
+    parseFloat(containerStyles.paddingBottom);
+
+  const availableWidth = Math.max(previewContainer.clientWidth - paddingX, 0);
+
+  let scale = 1;
+
+  if (isSmallScreen && isPreviewOpen) {
+    const previewActions = Array.from(
+      previewContainer.querySelectorAll(".btn-back-mobile, .btn-download"),
+    ).filter((el) => el.offsetParent !== null);
+
+    const actionsBottom = previewActions.reduce((bottom, button) => {
+      return Math.max(bottom, button.offsetTop + button.offsetHeight);
+    }, 0);
+
+    const actionGap = 12;
+    const availableHeight = Math.max(
+      previewContainer.clientHeight - paddingY - actionsBottom - actionGap,
+      0,
+    );
+
+    scale = Math.min(availableWidth / a4Width, availableHeight / a4Height, 1);
+  } else {
+    scale = Math.min(availableWidth / a4Width, 1);
+  }
+
+  const boundedScale = Math.max(scale, 0.3);
+
+  rootStyle.setProperty("--preview-scale", boundedScale.toString());
+  rootStyle.setProperty("--preview-frame-width", `${a4Width * boundedScale}px`);
+
+  if (isSmallScreen && isPreviewOpen) {
+    rootStyle.setProperty(
+      "--preview-frame-height",
+      `${a4Height * boundedScale}px`,
+    );
+    return;
+  }
+
+  const contentHeight = Math.max(resumePreview.scrollHeight, a4Height);
+  rootStyle.setProperty(
+    "--preview-frame-height",
+    `${contentHeight * boundedScale}px`,
+  );
+}
+
+window.addEventListener("resize", updatePreviewScale);
+window.addEventListener("orientationchange", updatePreviewScale);
 
 // Add Work
 function addWork() {
@@ -99,6 +218,27 @@ function addCert() {
   container.appendChild(div);
 }
 
+// Add Custom Section
+function addCustomSection() {
+  const container = document.getElementById("custom-section-container");
+  const div = document.createElement("div");
+  div.className = "dynamic-item custom-section-item";
+
+  div.appendChild(createInputGroup("Section Title", "cs-title"));
+  div.appendChild(createInputGroup("Details", "cs-desc", "textarea"));
+
+  const delBtn = document.createElement("button");
+  delBtn.innerText = "Remove";
+  delBtn.className = "btn btn-delete";
+  delBtn.onclick = function () {
+    container.removeChild(div);
+    updateResume();
+  };
+  div.appendChild(delBtn);
+
+  container.appendChild(div);
+}
+
 // --- UPDATE PREVIEW ---
 function updateResume() {
   // Static
@@ -118,14 +258,14 @@ function updateResume() {
   const workItems = document.querySelectorAll(".work-item");
   let workHTML = "";
   workItems.forEach((item) => {
-    const title = item.querySelector(".w-title").value;
-    const company = item.querySelector(".w-company").value;
-    const date = item.querySelector(".w-date").value;
-    const desc = item.querySelector(".w-desc").value.replace(/\n/g, "<br>");
+    const title = escapeHTML(item.querySelector(".w-title").value);
+    const company = escapeHTML(item.querySelector(".w-company").value);
+    const date = escapeHTML(item.querySelector(".w-date").value);
+    const desc = formatPreviewText(item.querySelector(".w-desc").value);
 
     if (title || company) {
       workHTML += `
-                <div style="margin-bottom: 12px;">
+                <div class="ats-entry">
                     <div class="ats-job-header">
                         <span>${title}</span>
                         <span>${date}</span>
@@ -142,13 +282,13 @@ function updateResume() {
   const eduItems = document.querySelectorAll(".edu-item");
   let eduHTML = "";
   eduItems.forEach((item) => {
-    const degree = item.querySelector(".e-degree").value;
-    const school = item.querySelector(".e-school").value;
-    const year = item.querySelector(".e-year").value;
+    const degree = escapeHTML(item.querySelector(".e-degree").value);
+    const school = escapeHTML(item.querySelector(".e-school").value);
+    const year = escapeHTML(item.querySelector(".e-year").value);
 
     if (degree || school) {
       eduHTML += `
-                <div style="margin-bottom: 8px;">
+                <div class="ats-entry ats-entry-compact">
                     <div class="ats-job-header">
                         <span>${school}</span>
                         <span>${year}</span>
@@ -164,9 +304,9 @@ function updateResume() {
   const certItems = document.querySelectorAll(".cert-item");
   let certHTML = "";
   certItems.forEach((item) => {
-    const name = item.querySelector(".c-name").value;
-    const issuer = item.querySelector(".c-issuer").value;
-    const date = item.querySelector(".c-date").value;
+    const name = escapeHTML(item.querySelector(".c-name").value);
+    const issuer = escapeHTML(item.querySelector(".c-issuer").value);
+    const date = escapeHTML(item.querySelector(".c-date").value);
 
     if (name) {
       certHTML += `
@@ -177,6 +317,26 @@ function updateResume() {
     }
   });
   document.getElementById("p-certs").innerHTML = certHTML;
+
+  // Custom Sections
+  const customSectionItems = document.querySelectorAll(".custom-section-item");
+  let customSectionsHTML = "";
+  customSectionItems.forEach((item) => {
+    const title = escapeHTML(item.querySelector(".cs-title").value);
+    const desc = formatPreviewText(item.querySelector(".cs-desc").value);
+
+    if (title || desc) {
+      customSectionsHTML += `
+                <div class="ats-custom-section">
+                    <div class="ats-section-title">${title || "Additional Section"}</div>
+                    <div class="ats-content">${desc}</div>
+                </div>
+            `;
+    }
+  });
+  document.getElementById("p-custom-sections").innerHTML = customSectionsHTML;
+
+  schedulePreviewScaleUpdate();
 }
 
 // Init
@@ -185,22 +345,70 @@ window.onload = function () {
   addEducation();
   addCert();
   updateResume();
+  updatePreviewScale();
 };
 
 // --- MOBILE PREVIEW TOGGLE ---
 function toggleMobilePreview() {
   document.body.classList.toggle("mobile-preview-active");
+  updatePreviewScale();
 }
 
 // --- PDF DOWNLOAD ---
 function downloadPDF() {
   const element = document.getElementById("resume-preview");
+  const fullName = document.getElementById("name").value;
+
+  const originalInlineStyles = {
+    height: element.style.height,
+    minHeight: element.style.minHeight,
+    overflow: element.style.overflow,
+  };
+
+  const cleanupExport = function () {
+    element.style.height = originalInlineStyles.height;
+    element.style.minHeight = originalInlineStyles.minHeight;
+    element.style.overflow = originalInlineStyles.overflow;
+    document.body.classList.remove("pdf-export");
+    updatePreviewScale();
+  };
+
+  document.body.classList.add("pdf-export");
+
+  const pxPerMm = 96 / 25.4;
+  const a4HeightPx = 297 * pxPerMm;
+  const tolerancePx = 2;
+  const previewHeightPx = element.getBoundingClientRect().height;
+
+  element.style.minHeight = "0";
+
+  if (previewHeightPx <= a4HeightPx + tolerancePx) {
+    element.style.height = "296.8mm";
+    element.style.overflow = "hidden";
+  } else {
+    element.style.height = "auto";
+    element.style.overflow = "visible";
+  }
+
   const opt = {
     margin: 0,
-    filename: "ATS_Resume.pdf",
+    filename: formatResumeFilename(fullName),
     image: { type: "jpeg", quality: 1 },
-    html2canvas: { scale: 2, useCORS: true },
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      scrollY: 0,
+      backgroundColor: "#ffffff",
+    },
     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    pagebreak: { mode: ["css", "legacy"] },
   };
-  html2pdf().set(opt).from(element).save();
+
+  const pdfWorker = html2pdf().set(opt).from(element).save();
+
+  if (pdfWorker && typeof pdfWorker.then === "function") {
+    pdfWorker.then(cleanupExport, cleanupExport);
+  } else {
+    setTimeout(cleanupExport, 1000);
+  }
 }

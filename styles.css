@@ -9,6 +9,9 @@
   --border-focus: #93c5fd;
   --danger: #ef4444;
   --danger-bg: #fef2f2;
+  --preview-scale: 1;
+  --preview-frame-width: 210mm;
+  --preview-frame-height: 297mm;
 }
 
 * {
@@ -22,6 +25,7 @@ body {
   background: var(--bg-main);
   display: flex;
   height: 100vh;
+  width: 100%;
   overflow: hidden;
   color: var(--text-dark);
 }
@@ -44,7 +48,7 @@ body {
 /* --- LEFT SIDE: EDITOR --- */
 .editor {
   width: 45%;
-  padding: 40px;
+  padding: clamp(20px, 4vw, 40px);
   background: var(--bg-editor);
   overflow-y: auto;
   border-right: 1px solid var(--border);
@@ -55,11 +59,25 @@ body {
   z-index: 10;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.brand-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .editor h1 {
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-dark);
-  margin-bottom: 10px;
+  margin-bottom: 0;
   letter-spacing: -0.02em;
 }
 
@@ -67,6 +85,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
   margin-bottom: 16px;
 }
 
@@ -86,6 +105,7 @@ body {
   gap: 8px;
   font-weight: 500;
   user-select: none;
+  flex-shrink: 0;
 }
 
 .toggle-label input[type="checkbox"] {
@@ -125,7 +145,7 @@ body {
 .section-group {
   background: var(--bg-editor);
   border: 1px solid var(--border);
-  padding: 24px;
+  padding: clamp(16px, 3vw, 24px);
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
   position: relative;
@@ -160,6 +180,7 @@ label {
 input[type="text"],
 textarea {
   width: 100%;
+  min-height: 44px;
   padding: 10px 14px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -190,6 +211,7 @@ textarea {
 /* Buttons */
 .btn {
   padding: 12px 20px;
+  min-height: 44px;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -254,9 +276,17 @@ textarea {
   background-size: 20px 20px;
   padding: 40px;
   overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   justify-content: center;
   align-items: flex-start;
+}
+
+.resume-preview-frame {
+  flex: 0 0 auto;
+  width: var(--preview-frame-width);
+  height: var(--preview-frame-height);
+  position: relative;
 }
 
 #resume-preview {
@@ -268,27 +298,53 @@ textarea {
     0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
   color: #000;
+  font-family: "Times New Roman", Times, serif;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  transform-origin: top left;
+}
+
+body:not(.pdf-export) #resume-preview {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: scale(var(--preview-scale));
+}
+
+body.pdf-export .resume-preview-frame {
+  width: 210mm;
+  height: auto;
+  min-height: 297mm;
+  position: static;
+}
+
+body.pdf-export #resume-preview {
+  position: static;
+  box-shadow: none;
+  transform: none;
 }
 
 /* --- ATS STYLING --- */
 .ats-name {
-  font-family: "Arial", sans-serif;
-  font-size: 24px;
+  font-family: inherit;
+  font-size: 30px;
   font-weight: bold;
   text-transform: uppercase;
   text-align: center;
   margin-bottom: 4px;
+  overflow-wrap: anywhere;
 }
 .ats-contact {
-  font-family: "Arial", sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 15px;
   text-align: center;
   margin-bottom: 24px;
+  overflow-wrap: anywhere;
 }
 
 .ats-section-title {
-  font-family: "Arial", sans-serif;
-  font-size: 13px;
+  font-family: inherit;
+  font-size: 15px;
   font-weight: bold;
   text-transform: uppercase;
   border-bottom: 1px solid #000;
@@ -298,19 +354,46 @@ textarea {
 }
 
 .ats-content {
-  font-family: "Arial", sans-serif;
-  font-size: 11px;
+  font-family: inherit;
+  font-size: 15px;
   line-height: 1.6;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.ats-entry {
+  margin-bottom: 12px;
+  max-width: 100%;
+}
+.ats-entry-compact {
+  margin-bottom: 8px;
 }
 .ats-job-header {
   display: flex;
   justify-content: space-between;
-  font-weight: bold;
+  gap: 16px;
+  font-size: 15px;
   margin-top: 10px;
+  max-width: 100%;
+}
+.ats-job-header span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ats-job-header span:first-child {
+  font-weight: bold;
+}
+.ats-job-header span:last-child {
+  flex-shrink: 0;
+  font-weight: normal;
+  max-width: 45%;
+  text-align: right;
 }
 .ats-job-sub {
-  font-style: italic;
+  font-size: 15px;
+  font-style: normal;
   margin-bottom: 4px;
+  overflow-wrap: anywhere;
 }
 .ats-bold {
   font-weight: bold;
@@ -331,19 +414,60 @@ textarea {
   display: none;
 }
 
+@media (max-width: 1100px) {
+  body {
+    overflow: hidden;
+  }
+
+  .editor {
+    width: 48%;
+  }
+
+  .preview-container {
+    width: 52%;
+    padding: 24px;
+  }
+}
+
 @media (max-width: 768px) {
+  body {
+    display: block;
+    overflow: hidden;
+  }
+
   .editor {
     width: 100%;
     height: 100vh;
+    padding: 20px;
+    border-right: none;
+  }
+
+  .editor h1 {
+    font-size: 1.5rem;
+  }
+
+  .section-header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .section-header h2 {
+    min-width: 0;
+  }
+
+  .dynamic-item {
+    padding: 16px;
   }
 
   .preview-container {
     width: 100%;
-    height: 100vh;
+    height: 100dvh;
     display: none;
     padding: 20px;
     align-items: flex-start;
     justify-content: center;
+    gap: 12px;
+    overflow: hidden;
   }
 
   .btn-preview-mobile {
@@ -364,18 +488,24 @@ textarea {
     display: inline-flex;
     background: var(--text-dark);
     color: white;
-    margin-bottom: 20px;
-    width: 48%;
+    margin-bottom: 8px;
+    width: calc(50% - 6px);
     padding: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
 
   .preview-container .btn-download {
     display: inline-flex;
-    margin-bottom: 20px;
+    margin-bottom: 8px;
     margin-top: 0;
-    width: 48%;
+    width: calc(50% - 6px);
     padding: 12px;
     font-size: 0.95rem;
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
 
   body.mobile-preview-active .editor {
@@ -386,13 +516,67 @@ textarea {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    justify-content: center;
+    align-content: flex-start;
+  }
+
+  body.mobile-preview-active .resume-preview-frame {
+    width: var(--preview-frame-width);
+    min-height: var(--preview-frame-height);
+  }
+
+  body.mobile-preview-active #resume-preview {
+    transform: scale(var(--preview-scale));
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  body.pdf-export .resume-preview-frame {
+    width: 210mm;
+    min-height: 297mm;
+  }
+
+  body.pdf-export #resume-preview {
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor {
+    padding: 14px;
+    gap: 18px;
+  }
+
+  .section-group {
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .section-header {
+    gap: 10px;
+  }
+
+  .section-header h2 {
+    font-size: 1rem;
+  }
+
+  .toggle-label {
+    width: 100%;
     justify-content: space-between;
   }
 
-  #resume-preview {
+  .dynamic-item {
+    padding: 14px;
+  }
+
+  .btn-delete {
+    position: static;
     width: 100%;
-    padding: 10mm;
-    min-height: auto;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 12px;
+  }
+
+  .btn-back-mobile,
+  .preview-container .btn-download {
+    width: 100%;
   }
 }

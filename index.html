@@ -4,6 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ATS Resume Builder</title>
+    <link rel="icon" type="image/png" href="assets/resume_icon.png" />
+    <link rel="apple-touch-icon" href="assets/resume_icon.png" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link
@@ -135,6 +137,24 @@
         </button>
       </div>
 
+      <div class="section-group">
+        <div class="section-header">
+          <h2>Additional Sections</h2>
+          <label class="toggle-label">
+            <input
+              type="checkbox"
+              checked
+              onchange="toggleSection('preview-custom-section')"
+            />
+            <span class="toggle-switch"></span> Include
+          </label>
+        </div>
+        <div id="custom-section-container"></div>
+        <button class="btn btn-add" onclick="addCustomSection()">
+          + Add Section
+        </button>
+      </div>
+
       <button class="btn btn-preview-mobile" onclick="toggleMobilePreview()">
         Preview Resume
       </button>
@@ -151,45 +171,50 @@
 
       <button
         class="btn btn-download"
-        style="margin-bottom: 20px"
         onclick="downloadPDF()"
       >
         Download PDF
       </button>
 
-      <div id="resume-preview">
-        <div class="ats-name" id="p-name">YOUR NAME</div>
-        <div class="ats-contact" id="p-contact">
-          email@example.com | 123-456-7890
-        </div>
-
-        <div id="preview-summary-section">
-          <div class="ats-section-title">Professional Summary</div>
-          <div class="ats-content" id="p-summary">
-            Your summary will appear here...
+      <div class="resume-preview-frame">
+        <div id="resume-preview">
+          <div class="ats-name" id="p-name">YOUR NAME</div>
+          <div class="ats-contact" id="p-contact">
+            email@example.com | 123-456-7890
           </div>
-        </div>
 
-        <div id="preview-skills-section">
-          <div class="ats-section-title">Skills</div>
-          <div class="ats-content" id="p-skills">
-            Your skills will appear here...
+          <div id="preview-summary-section">
+            <div class="ats-section-title">Professional Summary</div>
+            <div class="ats-content" id="p-summary">
+              Your summary will appear here...
+            </div>
           </div>
-        </div>
 
-        <div id="preview-work-section">
-          <div class="ats-section-title">Work Experience</div>
-          <div id="p-work"></div>
-        </div>
+          <div id="preview-skills-section">
+            <div class="ats-section-title">Skills</div>
+            <div class="ats-content" id="p-skills">
+              Your skills will appear here...
+            </div>
+          </div>
 
-        <div id="preview-edu-section">
-          <div class="ats-section-title">Education</div>
-          <div id="p-education"></div>
-        </div>
+          <div id="preview-work-section">
+            <div class="ats-section-title">Work Experience</div>
+            <div id="p-work"></div>
+          </div>
 
-        <div id="preview-cert-section">
-          <div class="ats-section-title">Certifications</div>
-          <div id="p-certs"></div>
+          <div id="preview-edu-section">
+            <div class="ats-section-title">Education</div>
+            <div id="p-education"></div>
+          </div>
+
+          <div id="preview-cert-section">
+            <div class="ats-section-title">Certifications</div>
+            <div id="p-certs"></div>
+          </div>
+
+          <div id="preview-custom-section">
+            <div id="p-custom-sections"></div>
+          </div>
         </div>
       </div>
     </div>
